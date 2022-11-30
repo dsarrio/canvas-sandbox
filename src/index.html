@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox - Creative developer</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 5px;
+            background-color: lightgray;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        body.fullscreen {
+            padding: 0;
+            overflow: hidden;
+        }
+
+        body:not(.fullscreen) .dg.ac {
+            top: 98px !important;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: horizontal;
+        }
+
+        .column-right {
+            padding-left: 20px;
+        }
+
+        .fullscreen .column-right {
+            display: none;
+        }
+
+        .canvas-border {
+            padding: 5px;
+        }
+
+        .paused .canvas-border {
+            background-color: red;
+        }
+
+        .fullscreen .canvas-border {
+            padding: 0px;
+        }
+
+        #canvas {
+            display: block;
+        }
+
+        /* .fullscreen #canvas {
+            cursor: none;
+        } */
+
+        .field {
+            margin-bottom: 10px;
+        }
+
+        .commands {
+            margin-top: 10px;
+            font-size: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="column-left">
+            <div class="canvas-border">
+                <canvas id="canvas"></canvas>
+            </div>
+        </div>
+        <div class="column-right">
+            <div style="display: flex; align-items: center;">
+                <div>
+                    <div id="stats_container"></div>
+                    <input type="range" id="fps" min="1" max="144" value="60" style="width: 78px;">
+                </div>
+                <div style="margin-left: 70px; font-weight: bold; font-size: 24px;" id="time">
+                    0s
+                </div>
+            </div>
+            <hr>
+        </div>
+    </div>
+    <script src="lib/dat.gui.min.js"></script>
+    <script src="lib/stats.min.js"></script>
+    <script src="lib/tools.js"></script>
+    <script src="sandbox.js"></script>
+
+    <!-- List effects here -->
+    <script src="effects/fx_default.js"></script>
+    <!----------------------->
+
+    <script>
+        const sandbox = new Sandbox();
+    </script>
+</body>
+</html>
