@@ -1,17 +1,21 @@
 
 var P = (x, y, z = 0, w = 1) => { return {x, y, z, w} }
 
-// var clamp = (v, min, max) => {
-//     return  v < min ? min : v > max ? max : v;
-// }
+var clamp = (v, min, max) => {
+    return  v < min ? min : v > max ? max : v;
+}
 
-// var saturate = (v) => {
-//     return clamp(v, 0, 1);
-// }
+var saturate = (v) => {
+    return clamp(v, 0, 1);
+}
 
-// var lerp = (start, end, factor) => {
-//     return start + factor * (end - start);
-// }
+var step = (start, end, value) => {
+    return saturate((value - start) / (end - start));
+}
+
+var lerp = (start, end, factor) => {
+    return start + factor * (end - start);
+}
 
 // var tlerp = (tA, tB, vA, vB, t) => {
 //     var s = (tA != tB) ? clamp((t - tA) / (tB - tA), 0, 1) : 1;
@@ -43,12 +47,12 @@ var P = (x, y, z = 0, w = 1) => { return {x, y, z, w} }
 //     return (Math.sin(Vector2.dot(p, P(12.9898, 78.233))) * 43758.5453) % 1;
 // }
 
-// var rgba = (r, g, b, a) => {
-//     const rr = clamp(Math.round(r * 255), 0, 255);
-//     const gg = clamp(Math.round(g * 255), 0, 255);
-//     const bb = clamp(Math.round(b * 255), 0, 255);
-//     return 'rgba('+rr+','+gg+','+bb+','+a+')';
-// }
+var rgba = (r, g, b, a) => {
+    const rr = clamp(Math.round(r * 255), 0, 255);
+    const gg = clamp(Math.round(g * 255), 0, 255);
+    const bb = clamp(Math.round(b * 255), 0, 255);
+    return 'rgba('+rr+','+gg+','+bb+','+a+')';
+}
 
 // var randBetween = (min, max) => {
 //     return min + Math.random() * (max - min);
@@ -212,9 +216,6 @@ var P = (x, y, z = 0, w = 1) => { return {x, y, z, w} }
 // //     Math.max(v - amount, 0);
 // // }
 
-// var step = (start, end, value) => {
-//     return saturate((value - start) / (end - start));
-// }
 
 // // var rotate = (pos, rad) => {
 // //     const sina = Math.sin(rad);
