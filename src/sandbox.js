@@ -1,8 +1,293 @@
+import * as THREE from 'three';
 
-var GUI = undefined;
-const FX = [];
+export const FX = [];
 
-class Sandbox {
+export class EffectInputs {
+
+    constructor() {}
+
+    _effectInputs_init({ canvas }) {
+        this.canvas = canvas;
+        this.canvas.addEventListener('mousemove', (e) => this.onMouseMoved(e));
+        this.canvas.addEventListener('click', (e) => this.onMouseClicked(e));
+    }
+
+    _onMouseMoved(event) {
+        if (this.onMouseMoved) {      
+            const canvas_rect = this.canvas.getBoundingClientRect();      
+            this.onMouseMoved({
+                uv: {
+                    u: (event.clientX - canvas_rect.left) / canvas_rect.width,
+                    v: (event.clientY - canvas_rect.top) / canvas_rect.height,
+                },
+                position: {
+                    x: event.clientX - canvas_rect.left,
+                    y: event.clientY - canvas_rect.top,
+                },
+                event,
+            });
+        }
+    }
+
+    _onMouseClicked(event) {
+        if (this.onMouseClicked) {
+            const canvas_rect = this.canvas.getBoundingClientRect();      
+            this.onMouseClicked({
+                uv: {
+                    u: (event.clientX - canvas_rect.left) / canvas_rect.width,
+                    v: (event.clientY - canvas_rect.top) / canvas_rect.height,
+                },
+                position: {
+                    x: event.clientX - canvas_rect.left,
+                    y: event.clientY - canvas_rect.top,
+                },
+                event,
+            });
+        }
+    }
+}
+
+export class Effect3D extends EffectInputs {
+
+    constructor({width, height, gui, guiBuilder}) {
+        super();
+        
+        // setup canvas
+        const domCanvasContainer = document.getElementById('canvas_container');
+        this.canvas = document.createElement('canvas');
+        this.canvas.width = width;
+        this.canvas.height = height;
+        domCanvasContainer.appendChild(this.canvas);
+
+        // add menu helpers
+        this.gui = { ...gui,
+            scene: {
+                showAxes: true,
+                background: '#444',
+            },
+        };
+
+        const uiScene = guiBuilder.addFolder('3D Scene');
+        guiBuilder.remember(this.gui.scene);
+        uiScene.add(this.gui.scene, 'showAxes');
+        uiScene.addColor(this.gui.scene, 'background');
+
+        // init ThreeJS
+        this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas });
+        this.renderer.setSize(width, height);
+
+        this.scene = new THREE.Scene()
+        this.camera = new THREE.PerspectiveCamera(
+            75,
+            width / height,
+            0.1,
+            100000,
+        )
+        this.camera.position.z = 2
+
+        // configure scene
+        this.scene.background = new THREE.Color(this.gui.scene.background);
+        this.axesHelper = new THREE.AxesHelper( 1 );
+        this.scene.add( this.axesHelper );
+    }
+
+    _init() {
+        if (this.init) {
+            this.init({
+                canvas: this.canvas,
+                renderer: this.renderer,
+                scene: this.scene,
+                camera: this.camera
+            });
+        }
+    }
+
+    _onResize({width, height}) {
+        this.canvas.width = width;
+        this.canvas.height = height;
+
+        this.renderer.setSize(width, height);
+
+        this.camera.aspect = width / height;
+        this.camera.updateProjectionMatrix();
+
+        if (this.onResize) {
+            this.onResize({width, height});
+        }
+    }
+
+    _render({time}) {
+        this.scene.background.set(this.gui.scene.background);
+        this.axesHelper.visible = this.gui.scene.showAxes;
+        
+        if (this.render) {
+            this.render({time});
+        }
+        this.renderer.render(this.scene, this.camera)
+    }
+
+    _destroy() {
+        this.canvas.remove();
+    }
+}
+
+export class Effect2D extends EffectInputs {
+
+    constructor({width, height, gui, guiBuilder}) {
+        super();
+
+        // setup 2d canvas
+        const domCanvasContainer = document.getElementById('canvas_container');
+        this.canvas = document.createElement('canvas');
+        this.canvas.width = width;
+        this.canvas.height = height;
+        domCanvasContainer.appendChild(this.canvas);
+        this.ctx = this.canvas.getContext('2d');
+
+        // initialize inputs handlers
+        this._effectInputs_init({ canvas: this.canvas });
+
+        // add menu helpers
+        this.gui = { ...gui,
+            grid: {
+                show: false,
+                hsize: 50,
+                vsize: 50,
+                alpha: 0.10,
+            },
+            polarHud: {
+                show: false,
+                section_angle: Math.PI/4,
+                section_count: 4,
+                radius: 300,
+                alpha: 0.30,
+                showText: true,
+            },
+        };
+
+        const uiGrid = guiBuilder.addFolder('Grid');
+        guiBuilder.remember(this.gui.grid);
+        uiGrid.add(this.gui.grid, 'show');
+        uiGrid.add(this.gui.grid, 'hsize', 0, 500, 1);
+        uiGrid.add(this.gui.grid, 'vsize', 0, 500, 1);
+        uiGrid.add(this.gui.grid, 'alpha', 0, 1, 0.01);
+
+        const uiPolarHud = guiBuilder.addFolder('Polar hud');
+        guiBuilder.remember(this.gui.polarHud);
+        uiPolarHud.add(this.gui.polarHud, 'show');
+        uiPolarHud.add(this.gui.polarHud, 'section_angle', 0, Math.PI, 0.001);
+        uiPolarHud.add(this.gui.polarHud, 'section_count', 1, 50, 1);
+        uiPolarHud.add(this.gui.polarHud, 'radius', 0, 1000, 1);
+        uiPolarHud.add(this.gui.polarHud, 'alpha', 0, 1, 0.01);
+        uiPolarHud.add(this.gui.polarHud, 'showText').name('text');
+    }
+
+    _init() {
+        if (this.init) {
+            this.init({ctx: this.ctx})
+        }
+    }
+
+    _render({time}) {
+        this.ctx.save();
+        this.render({
+            ctx: this.ctx,
+            time,
+        });
+        this.ctx.restore();
+        this._renderPolarHud();
+        this._renderGrid();
+    }
+
+    _onResize({width, height}) {
+        this.canvas.width = width;
+        this.canvas.height = height;
+        if (this.onResize) {
+            this.onResize({width, height});
+        }
+    }
+
+    _destroy() {
+        this.canvas.remove();
+    }
+
+    _renderGrid() {
+        if (!this.gui.grid.show) return;
+        const ctx = this.ctx;
+        const Cx = ctx.canvas.width / 2 + 0.5;
+        const Cy = ctx.canvas.height / 2 + 0.5;
+        ctx.save();
+        ctx.translate(Cx, Cy);
+        ctx.globalAlpha = this.gui.grid.alpha;
+
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#00ff00';
+        ctx.beginPath();
+        ctx.moveTo(0, -Cy); ctx.lineTo(0, Cy);
+        ctx.moveTo(-Cx, 0); ctx.lineTo(Cx, 0);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (var i = 1; i < Cx; i++) {
+            const x = i * this.gui.grid.hsize;
+            ctx.moveTo(x, -Cy); ctx.lineTo(x, Cy);
+            ctx.moveTo(-x, -Cy); ctx.lineTo(-x, Cy);
+        }
+        for (var i = 1; i < Cy; i++) {
+            const y = i * this.gui.grid.vsize;
+            ctx.moveTo(-Cx, y); ctx.lineTo(Cx, y);
+            ctx.moveTo(-Cx, -y); ctx.lineTo(Cx, -y);
+        }
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    _renderPolarHud() {
+        if (!this.gui.polarHud.show) return;
+        const ctx = this.ctx;
+        const Cx = ctx.canvas.width / 2 + 0.5;
+        const Cy = ctx.canvas.height / 2 + 0.5;
+        ctx.save();
+        ctx.translate(Cx, Cy);
+        ctx.globalAlpha = this.gui.polarHud.alpha;
+
+        ctx.fillStyle = '#fff';
+        ctx.font = '18px serif';
+
+        const r = this.gui.polarHud.radius;
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#00ff00';
+        ctx.beginPath();
+        ctx.arc(0, 0, r, 0, Math.PI*2);
+        ctx.stroke();
+
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = '#fff';
+        const s = this.gui.polarHud.section_angle;
+        const nb = this.gui.polarHud.section_count * 2;
+        for (var j = 0; j < nb + 1; j++) {
+            const a = Math.PI + (j-nb/2) * s;
+            const v = P(Math.sin(a), Math.cos(a));
+            ctx.setLineDash([10, 10]);
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(v.x * 1000, v.y * 1000);
+            ctx.stroke();
+            ctx.fillRect(v.x*r-5, v.y*r-5, 10, 10);
+
+            if (this.gui.polarHud.showText) {
+                const m = ctx.measureText(j);
+                ctx.fillText(j, v.x * (r + 25) - m.width / 2, v.y * (r + 25) + (m.actualBoundingBoxAscent + m.actualBoundingBoxDescent) / 2);    
+            }
+        }
+
+        ctx.restore();
+    }
+}
+
+export class Sandbox {
     mouse = { x: 0, y: 0 };
 
     constructor() {
@@ -28,11 +313,7 @@ class Sandbox {
         // initialize time display
         this.timeDisplay = document.getElementById('time');
 
-        // setup rendering canvas
-        this.canvas = document.getElementById('canvas');
-        this.canvas.addEventListener('mousemove', (e) => this.onMouseMoved(e));
-        this.canvas.addEventListener('click', (e) => this.onMouseClicked(e));
-
+        // compute rendering sizes
         this.fullscreenSize = {
             width: window.screen.width,
             height: window.screen.height,
@@ -42,10 +323,6 @@ class Sandbox {
             width: window.innerWidth - 450, 
             height: Math.trunc((window.innerWidth - 450) / window.screen.width * window.screen.height),
         };
-
-        this.canvas.width = this.windowedSize.width;
-        this.canvas.height = this.windowedSize.height;
-        this.ctx = this.canvas.getContext('2d');
 
         // load last or first effect
         const lastRendererName = localStorage.getItem('renderer');
@@ -59,14 +336,23 @@ class Sandbox {
 
         document.location.hash = rendererClass.name;
 
+        if (this.renderer) {
+            this.renderer._destroy();
+        }
+
         this.renderer = new rendererClass({
-            ctx: this.ctx,
-            guiBuilder: this.gui,
+            width: this.windowedSize.width,
+            height: this.windowedSize.height,
+            gui: this.gui,
+            guiBuilder: this.guiBuilder,
         });
+
+        this.renderer._init();
+
         localStorage.setItem('renderer', rendererClass.name);
 
         const hasFocus = document.hasFocus();
-        if (hasFocus || !GUI.time.autoStop) {
+        if (hasFocus || !this.gui.time.autoStop) {
             this.start();
         } else {
             this.stop();
@@ -75,14 +361,14 @@ class Sandbox {
     }
 
     resetGUI({rendererClass}) {
-        if (this.gui) {
-            this.gui.saveToLocalStorageIfPossible();
-            this.gui.destroy();
+        if (this.guiBuilder) {
+            this.guiBuilder.saveToLocalStorageIfPossible();
+            this.guiBuilder.destroy();
         }
 
         document.location.hash = rendererClass.name;
 
-        GUI = {
+        this.gui = {
             time: {
                 speed: 1,
                 autoStop: true,
@@ -101,67 +387,37 @@ class Sandbox {
                 colorRGBA: [ 0, 128, 255, 0.3 ],
                 colorHSV: { h: 350, s: 0.9, v: 0.3 },
             },
-            grid: {
-                show: false,
-                hsize: 50,
-                vsize: 50,
-                alpha: 0.10,
-            },
-            polarHud: {
-                show: false,
-                section_angle: Math.PI/4,
-                section_count: 4,
-                radius: 300,
-                alpha: 0.30,
-                showText: true,
-            }
         }
 
-        this.gui = new dat.GUI({name: 'foobar', width: 400, hideable: true});
-        this.gui.useLocalStorage = true;
+        this.guiBuilder = new dat.GUI({name: 'foobar', width: 400, hideable: true});
+        this.guiBuilder.useLocalStorage = true;
         
-        const uiEffects = this.gui.addFolder('Select effect');
+        const uiEffects = this.guiBuilder.addFolder('Select effect');
         for (var fx of FX) {
             const t = fx;
             uiEffects.add({ add: () => { this.changeRenderer(t); }}, 'add').name(t.name);
         }
 
-        const uiGrid = this.gui.addFolder('Grid');
-        this.gui.remember(GUI.grid);
-        uiGrid.add(GUI.grid, 'show');
-        uiGrid.add(GUI.grid, 'hsize', 0, 500, 1);
-        uiGrid.add(GUI.grid, 'vsize', 0, 500, 1);
-        uiGrid.add(GUI.grid, 'alpha', 0, 1, 0.01);
-
-        const uiPolarHud = this.gui.addFolder('Polar hud');
-        this.gui.remember(GUI.polarHud);
-        uiPolarHud.add(GUI.polarHud, 'show');
-        uiPolarHud.add(GUI.polarHud, 'section_angle', 0, Math.PI, 0.001);
-        uiPolarHud.add(GUI.polarHud, 'section_count', 1, 50, 1);
-        uiPolarHud.add(GUI.polarHud, 'radius', 0, 1000, 1);
-        uiPolarHud.add(GUI.polarHud, 'alpha', 0, 1, 0.01);
-        uiPolarHud.add(GUI.polarHud, 'showText').name('text');
-
-        const uiTime = this.gui.addFolder('Time');
-        this.gui.remember(GUI.time);
-        uiTime.add(GUI.time, 'speed', 0, 20, .25);
-        uiTime.add(GUI.time, 'autoStop');
+        const uiTime = this.guiBuilder.addFolder('Time');
+        this.guiBuilder.remember(this.gui.time);
+        uiTime.add(this.gui.time, 'speed', 0, 20, .25);
+        uiTime.add(this.gui.time, 'autoStop');
         this.uiTime = uiTime;
 
-        const uiHelpers = this.gui.addFolder('Helpers');
-        this.gui.remember(GUI.helpers);
-        uiHelpers.add(GUI.helpers, 'scale1', 0, 300);
-        uiHelpers.add(GUI.helpers, 'scale2', 0, 300);
-        uiHelpers.add(GUI.helpers, 'scale3', 0, 100);
-        uiHelpers.add(GUI.helpers, 'scale4', 0, 100);
-        uiHelpers.add(GUI.helpers, 'scale5', 0, 100);
-        uiHelpers.add(GUI.helpers, 'toggle1');
-        uiHelpers.add(GUI.helpers, 'toggle2');
-        uiHelpers.add(GUI.helpers, 'toggle3');
-        uiHelpers.addColor(GUI.helpers, 'colorHex');
-        uiHelpers.addColor(GUI.helpers, 'colorRGB');
-        uiHelpers.addColor(GUI.helpers, 'colorRGBA');
-        uiHelpers.addColor(GUI.helpers, 'colorHSV');
+        const uiHelpers = this.guiBuilder.addFolder('Helpers');
+        this.guiBuilder.remember(this.gui.helpers);
+        uiHelpers.add(this.gui.helpers, 'scale1', 0, 300);
+        uiHelpers.add(this.gui.helpers, 'scale2', 0, 300);
+        uiHelpers.add(this.gui.helpers, 'scale3', 0, 100);
+        uiHelpers.add(this.gui.helpers, 'scale4', 0, 100);
+        uiHelpers.add(this.gui.helpers, 'scale5', 0, 100);
+        uiHelpers.add(this.gui.helpers, 'toggle1');
+        uiHelpers.add(this.gui.helpers, 'toggle2');
+        uiHelpers.add(this.gui.helpers, 'toggle3');
+        uiHelpers.addColor(this.gui.helpers, 'colorHex');
+        uiHelpers.addColor(this.gui.helpers, 'colorRGB');
+        uiHelpers.addColor(this.gui.helpers, 'colorRGBA');
+        uiHelpers.addColor(this.gui.helpers, 'colorHSV');
     }
 
     reset() {
@@ -195,21 +451,16 @@ class Sandbox {
         }
         
         else { // not focus
-            if (GUI.time.autoStop) {
+            if (this.gui.time.autoStop) {
                 this.stop();
             }
         }
     }
 
     render() {
-        this.ctx.save();
-        this.renderer.render({
-            ctx: this.ctx,
+        this.renderer._render({
             time: this.elapsedTime / 1000
         });
-        this.ctx.restore();
-        this.renderPolarHud();
-        this.renderGrid();
     }
 
     draw(currentTime) {
@@ -221,7 +472,7 @@ class Sandbox {
         this.lastDrawTime = currentTime;
 
         // update elapsed time
-        this.elapsedTime += dt * GUI.time.speed;
+        this.elapsedTime += dt * this.gui.time.speed;
         const rounded = Math.round(this.elapsedTime / 100);
         this.timeDisplay.innerHTML = '' + rounded/10 + ((rounded % 10 == 0) ? '.0s' : 's');
 
@@ -248,16 +499,11 @@ class Sandbox {
             document.body.classList.toggle('fullscreen');
             if (document.body.classList.contains('fullscreen')) {
                 document.documentElement.requestFullscreen().then(() => {
-                    this.ctx.W = this.canvas.width = this.fullscreenSize.width;
-                    this.ctx.H = this.canvas.height = this.fullscreenSize.height;
+                    this.renderer._onResize(this.fullscreenSize);
                 });
             } else {
                 document.exitFullscreen();
-                this.ctx.W = this.canvas.width = this.windowedSize.width;
-                this.ctx.H = this.canvas.height = this.windowedSize.height;
-            }
-            if (this.renderer.onResize) {
-                this.renderer.onResize();
+                this.renderer._onResize(this.windowedSize);
             }
         }
 
@@ -271,112 +517,4 @@ class Sandbox {
         }
     }
 
-    onMouseMoved(event) {
-        if (this.renderer.onMouseMoved) {      
-            const canvas_rect = this.canvas.getBoundingClientRect();      
-            this.renderer.onMouseMoved({
-                uv: {
-                    u: (event.clientX - canvas_rect.left) / canvas_rect.width,
-                    v: (event.clientY - canvas_rect.top) / canvas_rect.height,
-                },
-                position: {
-                    x: event.clientX - canvas_rect.left,
-                    y: event.clientY - canvas_rect.top,
-                },
-                event,
-            });
-        }
-    }
-
-    onMouseClicked(event) {
-        if (this.renderer.onMouseClicked) {
-            const canvas_rect = this.canvas.getBoundingClientRect();      
-            this.renderer.onMouseClicked({
-                uv: {
-                    u: (event.clientX - canvas_rect.left) / canvas_rect.width,
-                    v: (event.clientY - canvas_rect.top) / canvas_rect.height,
-                },
-                position: {
-                    x: event.clientX - canvas_rect.left,
-                    y: event.clientY - canvas_rect.top,
-                },
-                event,
-            });
-        }
-    }
-
-    renderGrid() {
-        if (!GUI.grid.show) return;
-        const ctx = this.ctx;
-        const Cx = ctx.canvas.width / 2 + 0.5;
-        const Cy = ctx.canvas.height / 2 + 0.5;
-        ctx.save();
-        ctx.translate(Cx, Cy);
-        ctx.globalAlpha = GUI.grid.alpha;
-
-        ctx.lineWidth = 3;
-        ctx.strokeStyle = '#00ff00';
-        ctx.beginPath();
-        ctx.moveTo(0, -Cy); ctx.lineTo(0, Cy);
-        ctx.moveTo(-Cx, 0); ctx.lineTo(Cx, 0);
-        ctx.stroke();
-
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        for (var i = 1; i < Cx; i++) {
-            const x = i * GUI.grid.hsize;
-            ctx.moveTo(x, -Cy); ctx.lineTo(x, Cy);
-            ctx.moveTo(-x, -Cy); ctx.lineTo(-x, Cy);
-        }
-        for (var i = 1; i < Cy; i++) {
-            const y = i * GUI.grid.vsize;
-            ctx.moveTo(-Cx, y); ctx.lineTo(Cx, y);
-            ctx.moveTo(-Cx, -y); ctx.lineTo(Cx, -y);
-        }
-        ctx.stroke();
-        ctx.restore();
-    }
-
-    renderPolarHud() {
-        if (!GUI.polarHud.show) return;
-        const ctx = this.ctx;
-        const Cx = ctx.canvas.width / 2 + 0.5;
-        const Cy = ctx.canvas.height / 2 + 0.5;
-        ctx.save();
-        ctx.translate(Cx, Cy);
-        ctx.globalAlpha = GUI.polarHud.alpha;
-
-        ctx.fillStyle = '#fff';
-        ctx.font = '18px serif';
-
-        const r = GUI.polarHud.radius;
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = '#00ff00';
-        ctx.beginPath();
-        ctx.arc(0, 0, r, 0, Math.PI*2);
-        ctx.stroke();
-
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = '#fff';
-        const s = GUI.polarHud.section_angle;
-        const nb = GUI.polarHud.section_count * 2;
-        for (var j = 0; j < nb + 1; j++) {
-            const a = Math.PI + (j-nb/2) * s;
-            const v = P(Math.sin(a), Math.cos(a));
-            ctx.setLineDash([10, 10]);
-            ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(v.x * 1000, v.y * 1000);
-            ctx.stroke();
-            ctx.fillRect(v.x*r-5, v.y*r-5, 10, 10);
-
-            if (GUI.polarHud.showText) {
-                const m = ctx.measureText(j);
-                ctx.fillText(j, v.x * (r + 25) - m.width / 2, v.y * (r + 25) + (m.actualBoundingBoxAscent + m.actualBoundingBoxDescent) / 2);    
-            }
-        }
-
-        ctx.restore();
-    }
 }

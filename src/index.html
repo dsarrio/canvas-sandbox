@@ -47,7 +47,7 @@
             padding: 0px;
         }
 
-        #canvas {
+        .canvas_container canvas {
             display: block;
         }
 
@@ -68,9 +68,7 @@
 <body>
     <div class="container">
         <div class="column-left">
-            <div class="canvas-border">
-                <canvas id="canvas"></canvas>
-            </div>
+            <div class="canvas-border" id="canvas_container"></div>
         </div>
         <div class="column-right">
             <div style="display: flex; align-items: center;">
@@ -85,17 +83,28 @@
             <hr>
         </div>
     </div>
+    <script type="importmap">
+        {
+          "imports": {
+            "three": "./lib/threejs/three.module.js",
+            "sandbox": "./sandbox.js"
+          }
+        }
+    </script>
     <script src="lib/dat.gui.min.js"></script>
     <script src="lib/stats.min.js"></script>
-    <script src="lib/tools.js"></script>
-    <script src="sandbox.js"></script>
+    <script type="module" src="lib/threejs/three.module.js"></script>
+    <script type="module" src="lib/threejs/addons/OrbitControls.js"></script>
+    <script type="module" src="lib/tools.js"></script>
+    <script type="module" src="sandbox.js"></script>
 
     <!-- List effects here -->
-    <script src="effects/fx_default.js"></script>
-    <script src="effects/tunnel.js"></script>
+    <script type="module" src="effects/fx_default_2d.js"></script>
+    <script type="module" src="effects/fx_default_3d.js"></script>
     <!----------------------->
 
-    <script>
+    <script type="module">
+        import { Sandbox } from './sandbox.js';
         const sandbox = new Sandbox();
     </script>
 </body>

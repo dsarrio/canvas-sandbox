@@ -1,12 +1,12 @@
+import { FX, Effect2D } from 'sandbox';
 
-class Default {
+class Default2D extends Effect2D {
 
-    constructor({ctx, guiBuilder}) {
-        // ctx: canvas's context
-        // guiBuilder: builder to add specific elements to gui (see https://github.com/dataarts/dat.gui/blob/master/API.md)
+    constructor(args) {
+        super(args);
 
         // Uncomment lines below to create custom settings
-
+        // const { guiBuilder } = args; // builder to add specific elements to gui (see https://github.com/dataarts/dat.gui/blob/master/API.md)
         // // create data model
         // this.mySettings = {
         //     blur: 0.5,
@@ -20,6 +20,10 @@ class Default {
         // var myFolder = guiBuilder.addFolder('My custom settings');
         // myFolder.add(this.mySettings, 'blur', 0, 1, 0.01)
         // myFolder.addColor(this.mySettings, 'shadowColor');
+    }
+
+    init({ctx}) {
+        // ctx: canvas's context
     }
 
     onKeyDown({key}) {
@@ -49,7 +53,12 @@ class Default {
 
         ctx.fillStyle = '#000';
         ctx.fillRect(0, 0, W, H);
+
+        ctx.fillStyle = '#FFF';
+        const x = this.gui.helpers.scale1 - 150;
+        const y = this.gui.helpers.scale2 - 150;
+        ctx.fillRect(W / 2 - 50 + x, H / 2 - 50 + y, 100, 100);
     }
 }
 
-FX.push(Default);
+FX.push(Default2D);
