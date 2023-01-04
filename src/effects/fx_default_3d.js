@@ -52,6 +52,8 @@ class Default3D extends Effect3D {
     render({time}) {
         this.cube.material.wireframe = this.mySettings.wireframe;
         this.cube.material.color.set(this.mySettings.color);
+
+        this.cube.rotation.y = time / 4;
     }
 }
 
