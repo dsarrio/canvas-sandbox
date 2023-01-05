@@ -1,6 +1,8 @@
 import * as THREE from 'three';
-import { FX, Effect3D } from 'sandbox';
+import { FX, Effect3D } from '../sandbox.js';
 import { OrbitControls } from '../lib/threejs/addons/OrbitControls.js';
+import { loadImage } from '../lib/tools.js';
+import { VertexNormalsHelper } from '../lib/threejs/addons/VertexNormalsHelper.js';
 
 class Default3D extends Effect3D {
 
@@ -14,7 +16,7 @@ class Default3D extends Effect3D {
 
         // Sample custom settings        
         //   create data model
-        this.mySettings = { wireframe: true, color: '#FFFFFF' };
+        this.mySettings = { wireframe: false, color: '#FFFFFF' };
         //   ensure settings are saved upon reloads
         guiBuilder.remember(this.mySettings);        
         //   create menu entries
@@ -23,8 +25,7 @@ class Default3D extends Effect3D {
         myFolder.addColor(this.mySettings, 'color');
     }
 
-    init({canvas, renderer, scene, camera}) {
-
+    async init({canvas, renderer, scene, camera}) {
         // Enable mouse controls
         // rotate   : mleft + drag
         // translate: mright + drag
@@ -33,10 +34,17 @@ class Default3D extends Effect3D {
 
         // Create sample cube
         const geometry = new THREE.BoxGeometry()
+
+        const image = await loadImage('/assets/checkerboard.jpg');
+        const texture = new THREE.Texture(image);
+        texture.needsUpdate = true;
+
         const material = new THREE.MeshBasicMaterial({
             color: new THREE.Color(this.mySettings.color),
             wireframe: this.mySettings.wireframe,
+            map: texture,
         });
+
         this.cube = new THREE.Mesh(geometry, material);
 
         // Add cube to scene

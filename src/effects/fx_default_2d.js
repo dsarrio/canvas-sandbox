@@ -1,4 +1,4 @@
-import { FX, Effect2D } from 'sandbox';
+import { FX, Effect2D } from '../sandbox.js';
 
 class Default2D extends Effect2D {
 
@@ -22,7 +22,7 @@ class Default2D extends Effect2D {
         // myFolder.addColor(this.mySettings, 'shadowColor');
     }
 
-    init({ctx}) {
+    async init({ctx}) {
         // ctx: canvas's context
     }
 

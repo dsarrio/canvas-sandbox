@@ -63,7 +63,7 @@ export class Effect3D extends EffectInputs {
         this.gui = { ...gui,
             scene: {
                 showAxes: true,
-                background: '#444',
+                background: '#999',
             },
         };
 
@@ -83,17 +83,21 @@ export class Effect3D extends EffectInputs {
             0.1,
             100000,
         )
-        this.camera.position.z = 2
+        this.camera.position.z = 2;
+        this.camera.position.y = 0.5;
 
         // configure scene
         this.scene.background = new THREE.Color(this.gui.scene.background);
-        this.axesHelper = new THREE.AxesHelper( 1 );
+        this.axesHelper = new THREE.Group;
+        this.axesHelper.add(new THREE.ArrowHelper(new THREE.Vector3(1,0,0), new THREE.Vector3, 1, 0x7F2020, 0.2, 0.1 ) );
+        this.axesHelper.add(new THREE.ArrowHelper(new THREE.Vector3(0,1,0), new THREE.Vector3, 1, 0x207F20, 0.2, 0.1 ) );
+        this.axesHelper.add(new THREE.ArrowHelper(new THREE.Vector3(0,0,1), new THREE.Vector3, 1, 0x20207F, 0.2, 0.1 ) );
         this.scene.add( this.axesHelper );
     }
 
-    _init() {
+    async _init() {
         if (this.init) {
-            this.init({
+            await this.init({
                 canvas: this.canvas,
                 renderer: this.renderer,
                 scene: this.scene,
@@ -182,9 +186,9 @@ export class Effect2D extends EffectInputs {
         uiPolarHud.add(this.gui.polarHud, 'showText').name('text');
     }
 
-    _init() {
+    async _init() {
         if (this.init) {
-            this.init({ctx: this.ctx})
+            await this.init({ctx: this.ctx})
         }
     }
 
@@ -347,17 +351,17 @@ export class Sandbox {
             guiBuilder: this.guiBuilder,
         });
 
-        this.renderer._init();
+        this.renderer._init().then(() => {
+            localStorage.setItem('renderer', rendererClass.name);
 
-        localStorage.setItem('renderer', rendererClass.name);
-
-        const hasFocus = document.hasFocus();
-        if (hasFocus || !this.gui.time.autoStop) {
-            this.start();
-        } else {
-            this.stop();
-            this.render();
-        }
+            const hasFocus = document.hasFocus();
+            if (hasFocus || !this.gui.time.autoStop) {
+                this.start();
+            } else {
+                this.stop();
+                this.render();
+            }
+        });
     }
 
     resetGUI({rendererClass}) {

@@ -1,21 +1,30 @@
 
 var P = (x, y, z = 0, w = 1) => { return {x, y, z, w} }
 
-var clamp = (v, min, max) => {
+export const clamp = (v, min, max) => {
     return  v < min ? min : v > max ? max : v;
 }
 
-var saturate = (v) => {
+export const saturate = (v) => {
     return clamp(v, 0, 1);
 }
 
-var step = (start, end, value) => {
+export const step = (start, end, value) => {
     return saturate((value - start) / (end - start));
 }
 
-var lerp = (start, end, factor) => {
+export const lerp = (start, end, factor) => {
     return start + factor * (end - start);
 }
+
+export const loadImage = async (url) => {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.addEventListener('load', () => { console.log('loaded', url); resolve(img); }, false);
+        img.src = url;
+    });
+};
 
 // var tlerp = (tA, tB, vA, vB, t) => {
 //     var s = (tA != tB) ? clamp((t - tA) / (tB - tA), 0, 1) : 1;
