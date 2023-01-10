@@ -17,15 +17,6 @@ export const lerp = (start, end, factor) => {
     return start + factor * (end - start);
 }
 
-export const loadImage = async (url) => {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.crossOrigin = "Anonymous";
-        img.addEventListener('load', () => { console.log('loaded', url); resolve(img); }, false);
-        img.src = url;
-    });
-};
-
 // var tlerp = (tA, tB, vA, vB, t) => {
 //     var s = (tA != tB) ? clamp((t - tA) / (tB - tA), 0, 1) : 1;
 //     return lerp(vA, vB, s * s * (3.0 - 2.0 * s));
