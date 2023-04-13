@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "start": "vite",
-    "build": "tsc && vite build",
-    "build-demo": "tsc && vite build --config vite.config.demo.js",
+    "build": "tsc && vite build --emptyOutDir",
+    "build-demo": "tsc && vite build --config vite.config.demo.js --emptyOutDir",
     "preview": "vite preview"
   },
   "devDependencies": {
