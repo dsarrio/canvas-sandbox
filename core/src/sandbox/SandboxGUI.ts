@@ -13,7 +13,7 @@ export class SandboxGUI {
     timeSpeedFactor: number;
     canvasWidth: number = 600;
     canvasHeight: number = 450;
-    pauseOnBlur: boolean = true;
+    pauseOnBlur: boolean = false;
 
     constructor(sandbox: Sandbox, domContainer: HTMLElement) {
         this._sandbox = sandbox;
