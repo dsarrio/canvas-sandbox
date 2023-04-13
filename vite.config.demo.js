@@ -1,7 +1,7 @@
 import { splitVendorChunkPlugin } from 'vite'
 
 export default {
-    base: './',
+    base: '',
     root: './core',
     plugins: [ splitVendorChunkPlugin() ],
     publicDir: '../public',
