@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/resources/icon.svg" />
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0" />
+    <title>Canvas Sandbox</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="column-left">
+        <div class="sticky-wrapper">
+          <div class="canvas-container" id="canvas_container">
+            <div id="icon-paused" class="icon-paused" title="Paused"></div>
+          </div>
+        </div>
+      </div>
+      <div class="column-right gui">
+        <div id="gui-effect-selector"></div>
+        <div id="gui-sandbox"></div>
+        <div id="gui-effect"></div>
+      </div>
+  </div>
+  <script type="module" src="src/sandbox/Sandbox.ts"></script>
+</body>
+</html>

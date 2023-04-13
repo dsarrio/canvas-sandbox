@@ -1,0 +1,22 @@
+{
+    "Clear canvas": {
+        "scope": "javascript,typescript",
+        "prefix": ["ctx.clear"],
+        "body": ["c.fillStyle = '#000000';", "c.fillRect(0, 0, W, H);", "$2"]
+    },
+    "Get canvas size": {
+        "scope": "javascript,typescript",
+        "prefix": ["ctx.size-get"],
+        "body": ["const [W, H] = [ c.canvas.width, c.canvas.height ];", "$2"]
+    },
+    "Translate to center origin": {
+        "scope": "javascript,typescript",
+        "prefix": ["ctx.center-origin"],
+        "body": ["c.translate(W/2, H/2);", "$2"]
+    },
+    "Add a substate block": {
+        "scope": "javascript,typescript",
+        "prefix": ["ctx.save"],
+        "body": ["c.save();", "$2","c.restore();"]
+    },
+}

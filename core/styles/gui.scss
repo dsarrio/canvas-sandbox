@@ -1,0 +1,35 @@
+@import '../src/gui_plugins/textinfo/plugin.scss';
+
+:root {
+    //--tp-base-border-radius: 10px;
+    --tp-container-background-color: hsla(230, 68%, 60%, 0.40);
+    --tp-container-background-color-active: var(--tp-container-background-color);
+    --tp-container-background-color-focus: var(--tp-container-background-color);
+    --tp-container-background-color-hover: hsla(230, 75%, 53%, 0.40);
+    --tp-container-horizontal-padding: 4px;
+    --tp-container-vertical-padding: 4px;
+  }
+  
+  .tp-rotv {
+    box-shadow: 3px 3px 10px 0px rgba(0,0,0,0.55) !important;
+  
+    .tp-fldv {
+      .tp-fldv_t {
+        margin-left: 24px;
+        text-align: center;
+      }
+    }
+  
+    .tp-rotv_b {
+      .tp-rotv_t {
+        font-weight: bold;
+        font-size: 12px;
+        color: white;
+      }
+    } 
+  
+    .tp-colv.tp-colv-cpl .tp-colv_p {
+      overflow: hidden;
+    }
+  }
+  

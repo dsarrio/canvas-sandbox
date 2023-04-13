@@ -1,0 +1,30 @@
+@import './gui.scss';
+
+* {
+    padding: 0;
+    margin: 0;
+}
+
+body, html {
+    height: 100%;
+}
+
+canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.gui {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 400px;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+
+    .tp-dfwv {
+        width: 400px !important;
+    }
+}
